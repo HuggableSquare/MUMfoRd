@@ -4,7 +4,11 @@ a.k.a. MU(mble)M(usic)foR(uby)d
 i'm twelve and what is this
 ------
 Meet your new brobot, MUMfoRd. He does lots of cool tricks, like allowing you to request songs from YouTube and play them to all your normal bros on Mumble. Sick nasty, right?  
-This is a fork of [Natenom's mpd bot](https://github.com/Natenom/mumble-ruby-related/blob/master/scripts/mumble-ruby-mpd-bot.rb), which is a fork of [SuperTux88's bot](https://github.com/SuperTux88/mumble-bots/blob/master/mumble-music.rb), so thanks to them for the skeleton that runs this bot. <3
+hey some of this code looks kinda familiar
+-----------
+When I started this project, I knew absolutely no ruby in the slightest, so I did as any good programmer does and stole other people's code and changed it to my needs, but eventually the bot became much more, and so you can think of this as a fork of a few different other bots.  
+So, I guess this is a fork of [Natenom's mpd bot](https://github.com/Natenom/mumble-ruby-related/blob/master/scripts/mumble-ruby-mpd-bot.rb), which is a fork of [SuperTux88's bot](https://github.com/SuperTux88/mumble-bots/blob/master/mumble-music.rb), so thanks to them for the skeleton that runs this bot. <3  
+And, shoutout to the [Erulabs crew](https://github.com/erulabs/mumblebot) for their bot which has some code as part of MUMfoRd's skeleton, so thanks to them for that too. :D
 
 dependencies:
 ------
