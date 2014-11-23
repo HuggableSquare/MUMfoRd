@@ -111,20 +111,22 @@ class MumbleMPD
 					text_out = "<br />"
 					counter = 0
 					@mpd.playlists.each do |playlist|
-						text_out << "<b>#{counter}</b> - #{playlist}<br/>"
+						text_out << "<tr><td><b>#{counter} - </b></td><td>#{playlist}</td></tr>"
 						counter = counter + 1
 					end
-					send(@cli.users[msg.actor].name, "<br /><b>I know the following playlists:</b><br />#{text_out}")
+					
+					send(@cli.users[msg.actor].name, "<br /><b>I know the following playlists:</b><table border='0'>#{text_out}")
 				when /^queue$/i
 					songlist = %x[mpc -p #{@mpd_port} playlist]
 					text_out = "<br />"
 					counter = 0
 					songl = songlist.lines
 					songl.each do |song|
-                        text_out << "<b>#{counter}</b> - #{song}<br/>"
+                        text_out << "<tr><td><b>#{counter} - </b></td><td>#{song}</td></tr>"
                         counter = counter + 1
                     end
-					send(@cli.users[msg.actor].name, "<br /><b>Current Queue:</b><br />#{text_out}")
+
+					send(@cli.users[msg.actor].name, "<br /><b>Current Queue:</b><table border='0'>#{text_out}")
 				when /^.shut$/i
 					@mpd.stop
 					@cli.me.mute true
