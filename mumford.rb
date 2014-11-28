@@ -8,7 +8,7 @@
 
 require "mumble-ruby"
 require 'rubygems'
-require 'librmpd'
+require 'ruby-mpd'
 require 'thread'
 
 class MumbleMPD
@@ -49,8 +49,18 @@ class MumbleMPD
 	    log @cli.users[msg.actor].name + ": " + message
         case msg.message.to_s
         when /^current$/i
-          current = %x[mpc -p #{@mpd_port} current]
-          send(@cli.users[msg.actor].name, "#{current}")
+          current = @mpd.current_song
+          if not current.nil?
+            if current.artist.nil? && current.title.nil? && current.name.nil?
+              send(@cli.users[msg.actor].name, "#{current.file}")
+            elsif current.artist.nil? && current.title.nil?
+              send(@cli.users[msg.actor].name, "#{current.name}")
+            elsif current.artist.nil?
+              send(@cli.users[msg.actor].name, "#{current.name}: #{current.title}")
+            else
+              send(@cli.users[msg.actor].name, "#{current.artist} - #{current.title}")
+            end
+          end
         when /^request <a href="(\S*)(.*)">/i
           matches = message.match(/^request <a href="(\S*)(.*)">/i)
           url = matches[1]
@@ -62,16 +72,17 @@ class MumbleMPD
             send(@cli.users[msg.actor].name, "Invalid link.")
           end
         when /^load (.*)/i
-          playl = message.match(/^load (.*)/i)
+          playl = message.match(/^load (.*)/i)[1].to_i
           begin
-            @mpd.load(playl[1])
-            send(@cli.users[msg.actor].name, "Loaded playlist: #{playl[1]}")
+            playlist = @mpd.playlists[playl]
+            playlist.load
+            send(@cli.users[msg.actor].name, "Loaded playlist: #{playlist.name}")
           rescue
             send(@cli.users[msg.actor].name, "That playlist does not exist.")
           end
         when /^save (.*)/i
           playname = message.match(/^save (.*)/i)
-          @mpd.save(playname[1])
+          @mpd.save("#{playname[1]}")
         when /^next$/i
           @mpd.next
         when /^prev$/i
@@ -111,20 +122,31 @@ class MumbleMPD
           text_out = "<br />"
           counter = 0
           @mpd.playlists.each do |playlist|
-            text_out << "<tr><td><b>#{counter} - </b></td><td>#{playlist}</td></tr>"
+            text_out << "<tr><td><b>#{counter} - </b></td><td>#{playlist.name}</td></tr>"
             counter = counter + 1
           end	
           send(@cli.users[msg.actor].name, "<br /><b>I know the following playlists:</b><table border='0'>#{text_out}")
         when /^queue$/i
-          songlist = %x[mpc -p #{@mpd_port} playlist]
           text_out = "<br />"
-          counter = 0
-          songl = songlist.lines
-          songl.each do |song|
-            text_out << "<tr><td><b>#{counter} - </b></td><td>#{song}</td></tr>"
-            counter = counter + 1
+          @mpd.queue.each do |song|
+            if song.artist.nil? && song.title.nil? && song.name.nil?
+              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.file}</td></tr>"
+            elsif song.artist.nil? && song.title.nil?
+              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.name}</td></tr>"
+            elsif song.artist.nil?
+              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.name}: #{song.title}</td></tr>"
+            else
+              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.artist} - #{song.title}</td></tr>"
+            end
           end
           send(@cli.users[msg.actor].name, "<br /><b>Current Queue:</b><table border='0'>#{text_out}")
+        when /^seek (.*)/i
+          pos = message.match(/^seek (.*)/i)
+          begin
+            @mpd.play(pos[1])
+          rescue
+            send(@cli.users[msg.actor].name, "Cannot seek, most likely out of range.")
+          end
         when /^.shut$/i
           @mpd.stop
           @cli.me.mute true
@@ -147,6 +169,7 @@ class MumbleMPD
                                          + "<br /><b>lsplaylists</b> - shows all available playlists" \
                                          + "<br /><b>load</b> - accepts a playlist name to add to the current queue" \
                                          + "<br /><b>queue</b> - shows the current queue" \
+                                         + "<br /><b>seek</b> - accepts a position number of a song in queue to seek to" \
                                          + "<br /><b>.shut</b> - stops music and mutes bot" \
                                          + "<br /><b>.open</b> - plays music and unmutes bot" \
                                          + "<br /><b>save</b> - accepts a name to save the current queue as a playlist" \
@@ -159,7 +182,7 @@ class MumbleMPD
     @cli.connect
     sleep(1)
     @cli.player.stream_named_pipe(@mpd_fifopath)
-    @mpd.connect true
+    @mpd.connect
 
     begin
       t = Thread.new do

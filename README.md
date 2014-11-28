@@ -17,7 +17,7 @@ dependencies:
 - [mpc](http://www.musicpd.org/clients/mpc/)
 - [youtube-mpd-playlist-add](https://github.com/HuggableSquare/youtube-mpd-playlist-add)
 - [mumble-ruby](https://github.com/perrym5/mumble-ruby)
-- [librmpd](https://github.com/nex3/librmpd)
+- [ruby-mpd](https://github.com/archSeer/ruby-mpd)
 
 install (some assembly required):
 ----
