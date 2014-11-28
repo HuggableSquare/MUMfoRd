@@ -167,7 +167,7 @@ class MumbleMPD
                                          + "<br /><b>strobe</b> - clears queue and plays strobe.fm" \
                                          + "<br /><b>request</b> - accepts a link to a website (e.g. youtube, soundcloud, etc.) and adds that song to the playlist" \
                                          + "<br /><b>lsplaylists</b> - shows all available playlists" \
-                                         + "<br /><b>load</b> - accepts a playlist name to add to the current queue" \
+                                         + "<br /><b>load</b> - accepts a playlist number (shown by lsplaylists) to add to the current queue" \
                                          + "<br /><b>queue</b> - shows the current queue" \
                                          + "<br /><b>seek</b> - accepts a position number of a song in queue to seek to" \
                                          + "<br /><b>.shut</b> - stops music and mutes bot" \
