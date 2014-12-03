@@ -150,7 +150,7 @@ class MumbleMPD
         when /^.shut$/i
           @mpd.stop
           @cli.me.mute true
-        when/^.open$/i
+        when /^.open$/i
           @mpd.play
           @cli.me.mute false
         when /^help$/i
