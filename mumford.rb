@@ -181,6 +181,8 @@ class MumbleMPD
   def start
     @cli.connect
     sleep(1)
+    @cli.join_channel(@mumbleserver_targetchannel)
+    sleep(1)
     @cli.player.stream_named_pipe(@mpd_fifopath)
     @mpd.connect
 
