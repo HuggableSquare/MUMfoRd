@@ -1,0 +1,3 @@
+[submodule "youtube-mpd-playlist-add"]
+	path = youtube-mpd-playlist-add
+	url = https://github.com/HuggableSquare/youtube-mpd-playlist-add
