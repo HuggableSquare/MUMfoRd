@@ -6,10 +6,10 @@
 # Syntax
 # ruby bot.rb mumbleserver_host mumbleserver_port mumbleserver_username mumbleserver_userpassword mumbleserver_targetchannel quality_bitrate mpd_fifopath mpd_path mpd_host mpd_port
 
-require "mumble-ruby"
 require 'rubygems'
+
+require 'mumble-ruby'
 require 'ruby-mpd'
-require 'thread'
 
 class MumbleMPD
   def log(msg)
@@ -185,14 +185,6 @@ class MumbleMPD
     sleep(1)
     @cli.player.stream_named_pipe(@mpd_fifopath)
     @mpd.connect
-
-    begin
-      t = Thread.new do
-        $stdin.gets
-      end
-      t.join
-    rescue Interrupt => e
-    end
   end
 end
 
