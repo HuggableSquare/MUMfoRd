@@ -30,4 +30,4 @@ TODO
 ----
 - gemfile
 - write install guide
-- add current song to comment functionality
+- comment my code (probably never gonna happen)

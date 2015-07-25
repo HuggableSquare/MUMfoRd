@@ -8,6 +8,7 @@
 
 require 'rubygems'
 
+require 'thread'
 require 'mumble-ruby'
 require 'ruby-mpd'
 
@@ -29,7 +30,7 @@ class MumbleMPD
     @mpd_host = ARGV[7].to_s
     @mpd_port = ARGV[8].to_s
 
-    @mpd = MPD.new @mpd_host, @mpd_port
+    @mpd = MPD.new @mpd_host, @mpd_port, {callbacks: true}
 
     @mumbleserver_host = ARGV[0].to_s
     @mumbleserver_port = ARGV[1].to_s
@@ -43,10 +44,11 @@ class MumbleMPD
 	  conf.password = @mumbleserver_userpassword
       conf.bitrate = @quality_bitrate
     end
+
     @cli.on_text_message do |msg|
       message = msg.message
       if @cli.users.has_key?(msg.actor)
-	    log @cli.users[msg.actor].name + ": " + message
+        log @cli.users[msg.actor].name + ": " + message
         case msg.message.to_s
         when /^current$/i
           current = @mpd.current_song
@@ -177,7 +179,21 @@ class MumbleMPD
         end
       end
     end
+    @mpd.on :song do |current|
+      if !(current.nil? || @mpd.stopped?)
+        if current.artist.nil? && current.title.nil? && current.name.nil?
+          @cli.set_comment("#{current.file}")
+        elsif current.artist.nil? && current.title.nil?
+          @cli.set_comment("#{current.name}")
+        elsif current.artist.nil?
+          @cli.set_comment("#{current.name}: #{current.title}")
+        else
+          @cli.set_comment("#{current.artist} - #{current.title}")
+        end
+      end
+    end
   end
+
   def start
     @cli.connect
     sleep(1)
@@ -185,6 +201,14 @@ class MumbleMPD
     sleep(1)
     @cli.player.stream_named_pipe(@mpd_fifopath)
     @mpd.connect
+
+    begin
+      t = Thread.new do
+        $stdin.gets
+      end
+      t.join
+    rescue Interrupt => e
+    end
   end
 end
 
