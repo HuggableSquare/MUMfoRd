@@ -28,6 +28,5 @@ I'll get around to writing a guide that holds your hand through the process when
 
 TODO
 ----
-- gemfile
 - write install guide
 - comment my code (probably never gonna happen)

@@ -7,6 +7,7 @@
 # ruby bot.rb mumbleserver_host mumbleserver_port mumbleserver_username mumbleserver_userpassword mumbleserver_targetchannel quality_bitrate mpd_fifopath mpd_path mpd_host mpd_port
 
 require 'rubygems'
+require 'bundler/setup'
 
 require 'thread'
 require 'mumble-ruby'
