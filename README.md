@@ -16,7 +16,6 @@ dependencies
 ------
 - [ruby](https://www.ruby-lang.org/en/)
 - [mpd](http://www.musicpd.org/)
-- [mpc](http://www.musicpd.org/clients/mpc/)
 - [mumble-ruby](https://github.com/perrym5/mumble-ruby)
 - [ruby-mpd](https://github.com/archSeer/ruby-mpd)
 - [youtube-dl.rb](https://github.com/layer8x/youtube-dl.rb)

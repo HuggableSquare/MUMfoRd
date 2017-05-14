@@ -13,23 +13,39 @@ require 'youtube-dl.rb'
 
 class MumbleMPD
   def log(msg)
-    File.open('mumble.log', 'a') { |file| file.write(msg+"\n") }
+    File.open('mumble.log', 'a') { |file| file.write "#{msg}\n" }
   end
+
   def send(user, msg)
-    log "#{@mumbleserver_username}: "+msg
-    @cli.text_user user, msg
+    log "#{@mumbleserver_username}: #{msg}"
+    begin
+      @cli.text_user user, msg
+    rescue => e
+      File.open('error.log', 'a') { |file| file.write e }
+    end
+  end
+
+  def currentFormat(current)
+    if not current.nil?
+      if current.artist.nil? && current.title.nil? && current.name.nil?
+        return current.file
+      elsif current.artist.nil? && current.title.nil?
+        return current.name
+      elsif current.artist.nil?
+        return "#{current.name}: #{current.title}"
+      else
+        return "#{current.artist} - #{current.title}"
+      end
+    end
+    current
   end
 
   def initialize
-    @sv_art
-    @sv_alb
-    @sv_tit
-
     @mpd_fifopath = ARGV[6].to_s
     @mpd_host = ARGV[7].to_s
     @mpd_port = ARGV[8].to_s
 
-    @mpd = MPD.new @mpd_host, @mpd_port, {callbacks: true}
+    @mpd = MPD.new @mpd_host, @mpd_port, callbacks: true
 
     @mumbleserver_host = ARGV[0].to_s
     @mumbleserver_port = ARGV[1].to_s
@@ -40,28 +56,18 @@ class MumbleMPD
 
     @cli = Mumble::Client.new(@mumbleserver_host, @mumbleserver_port) do |conf|
       conf.username = @mumbleserver_username
-	  conf.password = @mumbleserver_userpassword
+      conf.password = @mumbleserver_userpassword
       conf.bitrate = @quality_bitrate
     end
 
     @cli.on_text_message do |msg|
       message = msg.message
+      user = @cli.users[msg.actor].name
       if @cli.users.has_key?(msg.actor)
-        log @cli.users[msg.actor].name + ": " + message
+        log "#{user}: #{message}"
         case msg.message.to_s
         when /^current$/i
-          current = @mpd.current_song
-          if not current.nil?
-            if current.artist.nil? && current.title.nil? && current.name.nil?
-              send(@cli.users[msg.actor].name, "#{current.file}")
-            elsif current.artist.nil? && current.title.nil?
-              send(@cli.users[msg.actor].name, "#{current.name}")
-            elsif current.artist.nil?
-              send(@cli.users[msg.actor].name, "#{current.name}: #{current.title}")
-            else
-              send(@cli.users[msg.actor].name, "#{current.artist} - #{current.title}")
-            end
-          end
+          send user, currentFormat(@mpd.current_song)
         when /^request <a href="(\S*)">/i
           options = {
             format: 'm4a/mp3',
@@ -80,17 +86,15 @@ class MumbleMPD
             send user, "Error downloading request."
           end
         when /^load (.*)/i
-          playl = message.match(/^load (.*)/i)[1].to_i
           begin
-            playlist = @mpd.playlists[playl]
+            playlist = @mpd.playlists[$1.to_i]
             playlist.load
-            send(@cli.users[msg.actor].name, "Loaded playlist: #{playlist.name}")
+            send user, "Loaded playlist: #{playlist.name}"
           rescue
-            send(@cli.users[msg.actor].name, "That playlist does not exist.")
+            send user, "That playlist does not exist."
           end
         when /^save (.*)/i
-          playname = message.match(/^save (.*)/i)
-          @mpd.save("#{playname[1]}")
+          @mpd.save $1
         when /^next$/i
           @mpd.next
         when /^prev$/i
@@ -103,24 +107,23 @@ class MumbleMPD
           begin
             @mpd.shuffle
           rescue
-            send(@cli.users[msg.actor].name, "Shuffle didn't complete for some reason. Queue was most likely empty.")
+            send user, "Shuffle didn't complete for some reason. Queue was most likely empty."
           end
         when /^strobe$/i
           @mpd.clear
           @mpd.add "http://streamer.strobe.fm/"
           @mpd.play
         when /^volume/i
-          if message.match(/^volume (\S*)(.*)/) != nil
-            vol = message.match(/^volume (\S*)(.*)/)
+          if message.match(/^volume (.*)/i) == nil
+            vol = @mpd.volume
+            send user, "Current Volume: #{vol}"
+          else
+            vol = message.match(/^volume (.*)/i)[1]
             begin
-              @mpd.volume=(vol[1])
+              @mpd.volume=(vol)
             rescue
-              send(@cli.users[msg.actor].name, "Invalid argument. Most likely out of range.")
+              send user, "Invalid argument. Most likely out of range."
             end
-          end
-          if message.match(/^volume (\S*)(.*)/) == nil
-            volu = @mpd.volume
-            send(@cli.users[msg.actor].name, "Current Volume: #{volu}")
           end
         when /^pause$/i
           @mpd.pause=(1)
@@ -132,81 +135,65 @@ class MumbleMPD
           @mpd.playlists.each do |playlist|
             text_out << "<tr><td><b>#{counter} - </b></td><td>#{playlist.name}</td></tr>"
             counter = counter + 1
-          end	
-          send(@cli.users[msg.actor].name, "<br /><b>I know the following playlists:</b><table border='0'>#{text_out}")
+          end
+
+          send user, "<br /><b>I know the following playlists:</b><table border='0'>#{text_out}"
         when /^queue$/i
           text_out = "<br />"
           @mpd.queue.each do |song|
-            if song.artist.nil? && song.title.nil? && song.name.nil?
-              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.file}</td></tr>"
-            elsif song.artist.nil? && song.title.nil?
-              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.name}</td></tr>"
-            elsif song.artist.nil?
-              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.name}: #{song.title}</td></tr>"
-            else
-              text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{song.artist} - #{song.title}</td></tr>"
-            end
+            text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{currentFormat(song)}</td></tr>"
           end
-          send(@cli.users[msg.actor].name, "<br /><b>Current Queue:</b><table border='0'>#{text_out}")
+          send user, "<br /><b>Current Queue:</b><table border='0'>#{text_out}"
         when /^seek (.*)/i
-          pos = message.match(/^seek (.*)/i)
           begin
-            @mpd.play(pos[1])
+            @mpd.play $1
           rescue
-            send(@cli.users[msg.actor].name, "Cannot seek, most likely out of range.")
+            send user, "Cannot seek, most likely out of range."
           end
-        when /^.shut$/i
+        when /^\.shut$/i
           @mpd.stop
-          @cli.me.mute true
-        when /^.open$/i
+          @cli.me.mute
+        when /^\.open$/i
           @mpd.play
           @cli.me.mute false
         when /^help$/i
-          send(@cli.users[msg.actor].name, "<br /><b>Commands List:</b><br />" \
-                                         + "<br /><b>current</b> - shows the currently playing song" \
-                                         + "<br /><b>play</b> - starts playback" \
-                                         + "<br /><b>pause</b> - pauses playback" \
-                                         + "<br /><b>stop</b> - stops playback" \
-                                         + "<br /><b>next</b> - goes to the next song in the queue" \
-                                         + "<br /><b>prev</b> - goes to the previous song in the queue" \
-                                         + "<br /><b>clear</b> - clears the current queue" \
-                                         + "<br /><b>volume</b> - shows current volume" \
-                                         + "<br /><b>volume 0-100</b> - sets volume" \
-                                         + "<br /><b>strobe</b> - clears queue and plays strobe.fm" \
-                                         + "<br /><b>request</b> - accepts a link to a website (e.g. youtube, soundcloud, etc.) and adds that song to the playlist" \
-                                         + "<br /><b>lsplaylists</b> - shows all available playlists" \
-                                         + "<br /><b>load</b> - accepts a playlist number (shown by lsplaylists) to add to the current queue" \
-                                         + "<br /><b>queue</b> - shows the current queue" \
-                                         + "<br /><b>seek</b> - accepts a position number of a song in queue to seek to" \
-                                         + "<br /><b>.shut</b> - stops music and mutes bot" \
-                                         + "<br /><b>.open</b> - plays music and unmutes bot" \
-                                         + "<br /><b>save</b> - accepts a name to save the current queue as a playlist" \
-                                         + "<br /><b>shuffle</b> - shuffles the current queue")
+          send user, "<br /><b>Commands List:</b><br />" \
+                   + "<br /><b>current</b> - shows the currently playing song" \
+                   + "<br /><b>play</b> - starts playback" \
+                   + "<br /><b>pause</b> - pauses playback" \
+                   + "<br /><b>stop</b> - stops playback" \
+                   + "<br /><b>next</b> - goes to the next song in the queue" \
+                   + "<br /><b>prev</b> - goes to the previous song in the queue" \
+                   + "<br /><b>clear</b> - clears the current queue" \
+                   + "<br /><b>volume</b> - shows current volume" \
+                   + "<br /><b>volume 0-100</b> - sets volume" \
+                   + "<br /><b>strobe</b> - clears queue and plays strobe.fm" \
+                   + "<br /><b>request</b> - accepts a link to a website (e.g. youtube, soundcloud, etc.) and adds that song to the playlist" \
+                   + "<br /><b>lsplaylists</b> - shows all available playlists" \
+                   + "<br /><b>load</b> - accepts a playlist number (shown by lsplaylists) to add to the current queue" \
+                   + "<br /><b>queue</b> - shows the current queue" \
+                   + "<br /><b>seek</b> - accepts a position number of a song in queue to seek to" \
+                   + "<br /><b>.shut</b> - stops music and mutes bot" \
+                   + "<br /><b>.open</b> - plays music and unmutes bot" \
+                   + "<br /><b>save</b> - accepts a name to save the current queue as a playlist" \
+                   + "<br /><b>shuffle</b> - shuffles the current queue"
         end
       end
     end
+
     @mpd.on :song do |current|
-      if !(current.nil? || @mpd.stopped?)
-        if current.artist.nil? && current.title.nil? && current.name.nil?
-          @cli.set_comment("#{current.file}")
-        elsif current.artist.nil? && current.title.nil?
-          @cli.set_comment("#{current.name}")
-        elsif current.artist.nil?
-          @cli.set_comment("#{current.name}: #{current.title}")
-        else
-          @cli.set_comment("#{current.artist} - #{current.title}")
-        end
+      if not current.nil? || @mpd.stopped?
+        @cli.set_comment currentFormat(current)
       end
     end
   end
 
   def start
     @cli.connect
-    sleep(1)
-    @cli.join_channel(@mumbleserver_targetchannel)
-    sleep(1)
-    @cli.player.stream_named_pipe(@mpd_fifopath)
-    @mpd.connect
+    @cli.on_connected do
+      @cli.player.stream_named_pipe @mpd_fifopath
+      @mpd.connect
+    end
 
     begin
       t = Thread.new do
