@@ -17,9 +17,9 @@ dependencies
 - [ruby](https://www.ruby-lang.org/en/)
 - [mpd](http://www.musicpd.org/)
 - [mpc](http://www.musicpd.org/clients/mpc/)
-- [youtube-mpd-playlist-add](https://github.com/HuggableSquare/youtube-mpd-playlist-add)
 - [mumble-ruby](https://github.com/perrym5/mumble-ruby)
 - [ruby-mpd](https://github.com/archSeer/ruby-mpd)
+- [youtube-dl.rb](https://github.com/layer8x/youtube-dl.rb)
 
 install (some assembly required)
 ----

@@ -6,12 +6,10 @@
 # Syntax
 # ruby bot.rb mumbleserver_host mumbleserver_port mumbleserver_username mumbleserver_userpassword mumbleserver_targetchannel quality_bitrate mpd_fifopath mpd_path mpd_host mpd_port
 
-require 'rubygems'
-require 'bundler/setup'
-
 require 'thread'
 require 'mumble-ruby'
 require 'ruby-mpd'
+require 'youtube-dl.rb'
 
 class MumbleMPD
   def log(msg)
@@ -64,15 +62,22 @@ class MumbleMPD
               send(@cli.users[msg.actor].name, "#{current.artist} - #{current.title}")
             end
           end
-        when /^request <a href="(\S*)(.*)">/i
-          matches = message.match(/^request <a href="(\S*)(.*)">/i)
-          url = matches[1]
-          output = %x[youtube-playlist-add.sh "#{url}"]
-          if !output.empty?
-            send(@cli.users[msg.actor].name, "Done.")
-          end
-          if output.empty?
-            send(@cli.users[msg.actor].name, "Invalid link.")
+        when /^request <a href="(\S*)">/i
+          options = {
+            format: 'm4a/mp3',
+            add_metadata: true,
+            no_overwrites: true,
+            no_playlist: true,
+            playlist_end: 1,
+            output: 'music/%(title)s-%(id)s.%(ext)s'
+          }
+          begin
+            song = YoutubeDL.download $1, options
+            @mpd.update
+            @mpd.add song.filename.gsub 'music/', ''
+            send user, "Done. Use \"seek #{@mpd.queue.count - 1}\" to go directly to the song."
+          rescue
+            send user, "Error downloading request."
           end
         when /^load (.*)/i
           playl = message.match(/^load (.*)/i)[1].to_i
