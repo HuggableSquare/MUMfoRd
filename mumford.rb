@@ -131,10 +131,8 @@ class MumbleMPD
           @mpd.stop
         when /^lsplaylists$/i
           text_out = "<br />"
-          counter = 0
-          @mpd.playlists.each do |playlist|
-            text_out << "<tr><td><b>#{counter} - </b></td><td>#{playlist.name}</td></tr>"
-            counter = counter + 1
+          @mpd.playlists.each_with_index do |playlist, index|
+            text_out << "<tr><td><b>#{index} - </b></td><td>#{playlist.name}</td></tr>"
           end
 
           send user, "<br /><b>I know the following playlists:</b><table border='0'>#{text_out}"
