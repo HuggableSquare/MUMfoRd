@@ -25,7 +25,7 @@ class MumbleMPD
     end
   end
 
-  def currentFormat(current)
+  def current_format(current)
     if not current.nil?
       if current.artist.nil? && current.title.nil? && current.name.nil?
         return current.file
@@ -66,7 +66,7 @@ class MumbleMPD
         log "#{user}: #{message}"
         case msg.message.to_s
         when /^current$/i
-          send user, currentFormat(@mpd.current_song)
+          send user, current_format(@mpd.current_song)
         when /^request <a href="(\S*)">/i
           options = {
             format: 'm4a/mp3',
@@ -138,7 +138,7 @@ class MumbleMPD
         when /^queue$/i
           text_out = "<br />"
           @mpd.queue.each do |song|
-            text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{currentFormat(song)}</td></tr>"
+            text_out << "<tr><td><b>#{song.pos} - </b></td><td>#{current_format(song)}</td></tr>"
           end
           send user, "<br /><b>Current Queue:</b><table border='0'>#{text_out}"
         when /^seek (.*)/i
@@ -180,7 +180,7 @@ class MumbleMPD
 
     @mpd.on :song do |current|
       if not current.nil? || @mpd.stopped?
-        @cli.set_comment currentFormat(current)
+        @cli.set_comment current_format(current)
       end
     end
   end
