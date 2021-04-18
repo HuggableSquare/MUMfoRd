@@ -4,7 +4,7 @@
 # Added things such as requests, play, pause, volume, etc.
 
 # Syntax
-# ruby bot.rb mumbleserver_host mumbleserver_port mumbleserver_username mumbleserver_userpassword quality_bitrate mpd_fifopath mpd_path mpd_host mpd_port
+# ruby bot.rb mumbleserver_host mumbleserver_port mumbleserver_username mumbleserver_userpassword quality_bitrate
 
 require 'thread'
 require 'mumble-ruby'
@@ -41,11 +41,7 @@ class MumbleMPD
   end
 
   def initialize
-    @mpd_fifopath = ARGV[5].to_s
-    @mpd_host = ARGV[6].to_s
-    @mpd_port = ARGV[7].to_s
-
-    @mpd = MPD.new @mpd_host, @mpd_port, callbacks: true
+    @mpd = MPD.new 'localhost', 6600, callbacks: true
 
     @mumbleserver_host = ARGV[0].to_s
     @mumbleserver_port = ARGV[1].to_s
@@ -192,7 +188,7 @@ class MumbleMPD
   def start
     @cli.connect
     @cli.on_connected do
-      @cli.player.stream_named_pipe @mpd_fifopath
+      @cli.player.stream_named_pipe "mpd.fifo"
       @mpd.connect
     end
 
