@@ -10,7 +10,7 @@ GEM
     cocaine (0.5.8)
       climate_control (>= 0.0.3, < 1.0)
     concurrent-ruby (1.0.5)
-    ffi (1.9.18)
+    ffi (1.15.0)
     hashie (3.5.5)
     i18n (0.8.1)
     minitest (5.10.2)
