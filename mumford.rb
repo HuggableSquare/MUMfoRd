@@ -4,7 +4,7 @@
 # Added things such as requests, play, pause, volume, etc.
 
 # Syntax
-# ruby bot.rb mumbleserver_host mumbleserver_port mumbleserver_username mumbleserver_userpassword mumbleserver_targetchannel quality_bitrate mpd_fifopath mpd_path mpd_host mpd_port
+# ruby bot.rb mumbleserver_host mumbleserver_port mumbleserver_username mumbleserver_userpassword quality_bitrate mpd_fifopath mpd_path mpd_host mpd_port
 
 require 'thread'
 require 'mumble-ruby'
@@ -41,9 +41,9 @@ class MumbleMPD
   end
 
   def initialize
-    @mpd_fifopath = ARGV[6].to_s
-    @mpd_host = ARGV[7].to_s
-    @mpd_port = ARGV[8].to_s
+    @mpd_fifopath = ARGV[5].to_s
+    @mpd_host = ARGV[6].to_s
+    @mpd_port = ARGV[7].to_s
 
     @mpd = MPD.new @mpd_host, @mpd_port, callbacks: true
 
@@ -51,8 +51,7 @@ class MumbleMPD
     @mumbleserver_port = ARGV[1].to_s
     @mumbleserver_username = ARGV[2].to_s
     @mumbleserver_userpassword = ARGV[3].to_s
-    @mumbleserver_targetchannel = ARGV[4].to_s
-    @quality_bitrate = ARGV[5].to_i
+    @quality_bitrate = ARGV[4].to_i
 
     @cli = Mumble::Client.new(@mumbleserver_host, @mumbleserver_port) do |conf|
       conf.username = @mumbleserver_username
