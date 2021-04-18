@@ -79,6 +79,9 @@ class MumbleMPD
           begin
             song = YoutubeDL.download $1, options
             @mpd.update
+            while @mpd.status[:updating_db] do
+              sleep 0.5
+            end
             @mpd.add song.filename.gsub 'music/', ''
             send user, "Done. Use \"seek #{@mpd.queue.count - 1}\" to go directly to the song."
           rescue
