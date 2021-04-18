@@ -57,6 +57,7 @@ class MumbleMPD
       conf.username = @mumbleserver_username
       conf.password = @mumbleserver_userpassword
       conf.bitrate = @quality_bitrate
+      conf.ssl_cert_opts[:cert_dir] = File.expand_path("./certs/")
     end
 
     @cli.on_text_message do |msg|
