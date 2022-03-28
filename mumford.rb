@@ -57,9 +57,9 @@ class MumbleMPD
     end
 
     @cli.on_text_message do |msg|
-      message = msg.message
-      user = @cli.users[msg.actor].name
       if @cli.users.has_key?(msg.actor)
+        message = msg.message
+        user = @cli.users[msg.actor].name
         log "#{user}: #{message}"
         case msg.message.to_s
         when /^current$/i
