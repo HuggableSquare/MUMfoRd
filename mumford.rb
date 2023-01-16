@@ -65,24 +65,27 @@ class MumbleMPD
         when /^current$/i
           send user, current_format(@mpd.current_song)
         when /^request <a href="(\S*)">/i
-          options = {
-            format: 'm4a/mp3',
-            add_metadata: true,
-            no_overwrites: true,
-            no_playlist: true,
-            playlist_end: 1,
-            output: 'music/%(title)s-%(id)s.%(ext)s'
-          }
-          begin
-            song = YoutubeDL.download $1, options
-            @mpd.update
-            while @mpd.status[:updating_db] do
-              sleep 0.5
+          Thread.new do
+            options = {
+              format: 'm4a/mp3',
+              add_metadata: true,
+              no_overwrites: true,
+              no_playlist: true,
+              playlist_end: 1,
+              output: 'music/%(title)s-%(id)s.%(ext)s'
+            }
+            begin
+              send user, "Downloading..."
+              song = YoutubeDL.download $1, options
+              @mpd.update
+              while @mpd.status[:updating_db] do
+                sleep 0.5
+              end
+              @mpd.add song.filename.gsub 'music/', ''
+              send user, "Done. Use \"seek #{@mpd.queue.count - 1}\" to go directly to the song."
+            rescue
+              send user, "Error downloading request."
             end
-            @mpd.add song.filename.gsub 'music/', ''
-            send user, "Done. Use \"seek #{@mpd.queue.count - 1}\" to go directly to the song."
-          rescue
-            send user, "Error downloading request."
           end
         when /^load (.*)/i
           begin
