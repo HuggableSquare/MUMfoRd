@@ -113,7 +113,7 @@ class MumbleMPD
           end
         when /^strobe$/i
           @mpd.clear
-          @mpd.add "http://streamer.strobe.fm/"
+          @mpd.add "https://icy.strobefm.com/"
           @mpd.play
         when /^volume/i
           if message.match(/^volume (.*)/i) == nil
