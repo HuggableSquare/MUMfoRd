@@ -65,6 +65,7 @@ class MumbleMPD
         when /^current$/i
           send user, current_format(@mpd.current_song)
         when /^request <a href="(\S*)">/i
+          url = $1
           Thread.new do
             options = {
               format: 'm4a/mp3',
@@ -76,14 +77,15 @@ class MumbleMPD
             }
             begin
               send user, "Downloading..."
-              song = YoutubeDL.download $1, options
+              song = YoutubeDL.download url, options
               @mpd.update
               while @mpd.status[:updating_db] do
                 sleep 0.5
               end
               @mpd.add song.filename.gsub 'music/', ''
               send user, "Done. Use \"seek #{@mpd.queue.count - 1}\" to go directly to the song."
-            rescue
+            rescue => e
+              $stderr.puts e
               send user, "Error downloading request."
             end
           end
