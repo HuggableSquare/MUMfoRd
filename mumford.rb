@@ -19,7 +19,7 @@ class MumbleMPD
   def send(user, msg)
     log "#{@mumbleserver_username}: #{msg}"
     begin
-      @cli.text_user user, msg
+      @mumble.text_user user, msg
     rescue => e
       File.open('error.log', 'a') { |file| file.write e }
     end
@@ -49,17 +49,17 @@ class MumbleMPD
     @mumbleserver_userpassword = ARGV[3].to_s
     @quality_bitrate = ARGV[4].to_i
 
-    @cli = Mumble::Client.new(@mumbleserver_host, @mumbleserver_port) do |conf|
+    @mumble = Mumble::Client.new(@mumbleserver_host, @mumbleserver_port) do |conf|
       conf.username = @mumbleserver_username
       conf.password = @mumbleserver_userpassword
       conf.bitrate = @quality_bitrate
       conf.ssl_cert_opts[:cert_dir] = File.expand_path("./certs/")
     end
 
-    @cli.on_text_message do |msg|
-      if @cli.users.has_key?(msg.actor)
+    @mumble.on_text_message do |msg|
+      if @mumble.users.has_key?(msg.actor)
         message = msg.message
-        user = @cli.users[msg.actor].name
+        user = @mumble.users[msg.actor].name
         log "#{user}: #{message}"
         case msg.message.to_s
         when /^current$/i
@@ -152,10 +152,10 @@ class MumbleMPD
           end
         when /^\.shut$/i
           @mpd.stop
-          @cli.me.mute
+          @mumble.me.mute
         when /^\.open$/i
           @mpd.play
-          @cli.me.mute false
+          @mumble.me.mute false
         when /^help$/i
           send user, "<br /><b>Commands List:</b><br />" \
                    + "<br /><b>current</b> - shows the currently playing song" \
@@ -183,15 +183,15 @@ class MumbleMPD
 
     @mpd.on :song do |current|
       if not current.nil? || @mpd.stopped?
-        @cli.set_comment current_format(current)
+        @mumble.set_comment current_format(current)
       end
     end
   end
 
   def start
-    @cli.connect
-    @cli.on_connected do
-      @cli.player.stream_named_pipe "mpd.fifo"
+    @mumble.connect
+    @mumble.on_connected do
+      @mumble.player.stream_named_pipe "mpd.fifo"
       @mpd.connect
     end
 
