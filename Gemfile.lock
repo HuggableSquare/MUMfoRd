@@ -14,12 +14,11 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (6.1.7)
+    activesupport (7.0.4.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
-      zeitwerk (~> 2.3)
     climate_control (0.2.0)
     cocaine (0.5.8)
       climate_control (>= 0.0.3, < 1.0)
@@ -28,7 +27,7 @@ GEM
     hashie (5.0.0)
     i18n (1.12.0)
       concurrent-ruby (~> 1.0)
-    minitest (5.15.0)
+    minitest (5.17.0)
     opus-ruby (1.0.1)
       ffi
     ruby-mpd (0.3.3)
@@ -39,7 +38,6 @@ GEM
     wavefile (1.1.2)
     youtube-dl.rb (0.3.1.2016.09.11.1)
       cocaine (>= 0.5.4)
-    zeitwerk (2.6.6)
 
 PLATFORMS
   ruby
