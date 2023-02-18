@@ -1,11 +1,14 @@
-FROM ruby:2.5-alpine
+FROM ruby:2.6-alpine
 LABEL org.opencontainers.image.source https://github.com/HuggableSquare/MUMfoRd
 
 RUN bundle config --global frozen 1
 
-# install mpd, youtube-dl, and other dependencies
-RUN apk --no-cache add mpd libopusenc-dev python3 py3-pip ffmpeg build-base libffi-dev git
-RUN pip3 install youtube-dl
+# install mpd and other dependencies
+RUN apk --no-cache add mpd libopusenc-dev python3 ffmpeg build-base libffi-dev git curl
+
+# download yt-dlp
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+RUN chmod a+rx /usr/local/bin/yt-dlp
 
 # idk why this is necessary but it is
 RUN chown root /usr/bin/mpd

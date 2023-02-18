@@ -9,7 +9,7 @@
 require 'thread'
 require 'mumble-ruby'
 require 'ruby-mpd'
-require 'youtube-dl.rb'
+require 'yt_dlp'
 
 class MumbleMPD
   def log(msg)
@@ -41,6 +41,10 @@ class MumbleMPD
   end
 
   def initialize
+    YtDlp.configure do |config|
+      config.executable_path = '/usr/local/bin/yt-dlp'
+    end
+
     @mpd = MPD.new 'localhost', 6600, callbacks: true
 
     @mumbleserver_host = ARGV[0].to_s
@@ -73,16 +77,17 @@ class MumbleMPD
               no_overwrites: true,
               no_playlist: true,
               playlist_end: 1,
-              output: 'music/%(title)s-%(id)s.%(ext)s'
+              output: '"music/%(title)s-%(id)s.%(ext)s"'
             }
             begin
               send user, "Downloading..."
-              song = YoutubeDL.download url, options
+              song = YtDlp::Video.new url, options
+              filename = song.download
               @mpd.update
               while @mpd.status[:updating_db] do
                 sleep 0.5
               end
-              @mpd.add song.filename.gsub 'music/', ''
+              @mpd.add filename.gsub 'music/', ''
               send user, "Done. Use \"seek #{@mpd.queue.count - 1}\" to go directly to the song."
             rescue => e
               $stderr.puts e
