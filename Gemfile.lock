@@ -21,8 +21,6 @@ GEM
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
     climate_control (0.2.0)
-    cocaine (0.5.8)
-      climate_control (>= 0.0.3, < 1.0)
     concurrent-ruby (1.1.10)
     ffi (1.15.5)
     hashie (5.0.0)
@@ -33,12 +31,14 @@ GEM
       ffi
     ruby-mpd (0.3.3)
     ruby_protobuf (0.4.11)
+    terrapin (0.6.0)
+      climate_control (>= 0.0.3, < 1.0)
     thread (0.2.2)
     tzinfo (2.0.5)
       concurrent-ruby (~> 1.0)
     wavefile (1.1.2)
-    youtube-dl.rb (0.3.1.2016.09.11.1)
-      cocaine (>= 0.5.4)
+    yt_dlp (0.1.1)
+      terrapin (~> 0)
     zeitwerk (2.6.6)
 
 PLATFORMS
@@ -48,7 +48,7 @@ DEPENDENCIES
   mumble-ruby!
   ruby-mpd
   thread
-  youtube-dl.rb
+  yt_dlp
 
 BUNDLED WITH
    1.17.3
